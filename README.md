@@ -45,8 +45,11 @@ python chat_completions.py
 python chat_completions.py stream
 ```
 
-*Before you run it:* the third question is "What's my name?". How will the model know?
-Watch `prompt_tokens` on each turn.
+The script asks the same three questions twice: **Part 1** sends only the current question, **Part 2** sends the
+whole conversation so far.
+
+*Before you run it:* the third question is "What's my name?". Will the model know in Part 1? In Part 2?
+Watch `prompt_tokens` on each turn in both parts.
 
 ## 3. Responses API (20 min)
 

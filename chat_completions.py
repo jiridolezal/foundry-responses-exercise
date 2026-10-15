@@ -4,7 +4,7 @@ Exercise 1, part 1: Chat Completions API
 The "classic" API: you send a list of messages, you get one answer back. Nothing is kept on the service side,
 so YOUR code has to keep the conversation and send all of it again on every turn.
 
-    python chat_completions.py            # a 3-turn conversation, watch prompt_tokens grow
+    python chat_completions.py            # the same 3 questions twice: without the history, then with it
     python chat_completions.py stream     # the same first question, streamed token by token
 
 Configuration (.env next to this file, see .env.example):
@@ -51,25 +51,46 @@ CONVERSATION = [
 ]
 
 
-def conversation():
-    print(f"Chat Completions on deployment '{DEPLOYMENT}' ({'API key' if API_KEY else 'Entra ID'})")
-    messages = [{"role": "system", "content": "You are a concise assistant."}]
+SYSTEM = {"role": "system", "content": "You are a concise assistant."}
+
+
+def ask(turn, messages, text):
+    r = client.chat.completions.create(model=DEPLOYMENT, messages=messages)
+    answer = r.choices[0].message.content
+    print(f"\n--- Turn {turn}  (sent {len(messages)} messages)")
+    print(f"You:   {text}")
+    print(f"Model: {answer.strip()}")
+    print(f"       prompt_tokens={r.usage.prompt_tokens}  completion_tokens={r.usage.completion_tokens}")
+    return answer
+
+
+def without_history():
+    print("\n=== Part 1: WITHOUT history (each call sends only the system message + the current question)")
+    for turn, text in enumerate(CONVERSATION, 1):
+        ask(turn, [SYSTEM, {"role": "user", "content": text}], text)
+
+    print("\n>> The model remembers nothing between calls: every call starts from zero.")
+    print(">> prompt_tokens stays flat, and the model can't know 'those' (turn 2) or your name (turn 3).")
+
+
+def with_history():
+    print("\n=== Part 2: WITH history (each call re-sends the whole conversation so far)")
+    messages = [SYSTEM]
 
     for turn, text in enumerate(CONVERSATION, 1):
         messages.append({"role": "user", "content": text})
-
-        r = client.chat.completions.create(model=DEPLOYMENT, messages=messages)
-
-        answer = r.choices[0].message.content
+        answer = ask(turn, messages, text)
         messages.append({"role": "assistant", "content": answer})  # we keep the history, not the service
-        print(f"\n--- Turn {turn}  (sent {len(messages) - 1} messages)")
-        print(f"You:   {text}")
-        print(f"Model: {answer.strip()}")
-        print(f"       prompt_tokens={r.usage.prompt_tokens}  completion_tokens={r.usage.completion_tokens}")
 
     print("\n>> Every call re-sends the whole `messages` list: the history lives in YOUR app.")
     print(">> prompt_tokens grows each turn, because you pay for the whole history again.")
     print(">> Want web search, memory or a code sandbox? Here you build them yourself (function calling + your code).")
+
+
+def conversation():
+    print(f"Chat Completions on deployment '{DEPLOYMENT}' ({'API key' if API_KEY else 'Entra ID'})")
+    without_history()
+    with_history()
 
 
 def stream():
