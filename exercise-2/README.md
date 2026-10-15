@@ -1,61 +1,86 @@
-# Exercise 2: Build your own agent with knowledge and an MCP tool
+# Exercise 2: Build an agent in the Foundry portal and try everything you can
 
 **30 minutes + 5 minutes debrief · browser only · Microsoft Foundry portal (ai.azure.com, your E.ON account)**
 
-You build a prompt agent on a topic of your choice, give it a document to search and a remote tool to call, and watch
-in the trace what it does. The tool is a tiny MCP server we host for today: a **beer calculator** for team events.
+The goal is to **explore**: create a prompt agent in the portal, test it in the playground, and switch on as many
+features as you can (knowledge, tools, approvals, voice, versions…). Build anything you like. No idea? Pick one of the
+two ready-made agents below; their instructions and test prompts are in [`agent-instructions.md`](agent-instructions.md).
 
-**You get from the trainer (Teams chat / whiteboard):** the MCP server URL and its API key.
+**You get from the trainer (Teams chat):** the URL and the API key of the beer-calculator MCP server (agent B).
 
-## 1. Create the agent (5 min)
+## 1. Open your project (2 min)
 
-1. Open your project → **Build** → **Agents** → **Create agent**.
-2. Model: the shared deployment from Exercise 1.
-3. Instructions: anything you like. No idea? Try *"You help teams plan events. Use the beer calculator for any question
-   about how much beer to buy. Answer in the language of the question."*
+[ai.azure.com](https://ai.azure.com) → sign in with your E.ON account → make sure the **New Foundry** toggle is on →
+open your own project (`<surname>-ws`).
 
-## 2. Knowledge: File Search (5 min)
+## 2. Create an agent (3 min)
 
-Add **File Search** and upload one document: `voltava-price-list-2026.md` or `voltava-customer-faq.md` from the
-`data` folder next to this sheet (fictional electricity supplier; on GitHub open the file → **Download raw file**), or any
-non-sensitive document of your own.
-*What do you expect:* will the agent quote the document or make things up when the answer isn't there?
+**Build** → **Agents** → **Create agent** → give it a name → model: the shared deployment from Exercise 1 → paste
+instructions. Then pick one:
 
-## 3. Tool: the beer calculator MCP server (5 min)
+| | **A) Voltava support agent** | **B) Beer party planner** |
+|---|---|---|
+| What it does | Answers customer questions about a fictional electricity supplier from its documents | Works out how much beer a team party needs and what it costs, Kozel vs. Radegast |
+| Knowledge | **File Search** with the two files in [`data/`](data) | – |
+| Tools | – (add Code Interpreter later for calculations) | **MCP**: the beer calculator + **Web search** for current prices |
+| Instructions and test prompts | [`agent-instructions.md`](agent-instructions.md) → A | [`agent-instructions.md`](agent-instructions.md) → B |
 
-1. **Tools** → **Add** → **Model Context Protocol (MCP)** (custom tool).
-2. Server URL: the URL from the trainer. Authentication: **key / custom header**, name `x-api-key`, value: the key.
-3. Approval: **Always** (you will see each call before it runs).
+### A) File Search
 
-**If you can't create the connection** (missing permission): use the URL `<server URL>?api_key=<key>` and no
-authentication. Fine for this dummy server today, never for a real one.
+Download both files from [`data/`](data) (on GitHub: open the file → **Download raw file**):
+`voltava-price-list-2026.md` and `voltava-customer-faq.md`. In the agent, add **File Search** and upload them. You can
+also upload any non-sensitive document of your own.
 
-The tool: `calculate_beer(number_of_people)` → crates of 20 and single bottles, 4 bottles per person.
+### B) The beer calculator (MCP) and Web search
 
-## 4. Test in the playground (5 min)
+1. **Tools** → **Add** → **Model Context Protocol (MCP)** (custom).
+   Server URL: from the trainer. Authentication: **key / custom header**, name `x-api-key`, value: the key.
+   Approval: **Always** (you see each call before it runs).
+2. **Tools** → **Add** → **Web search**.
 
-| Try | What to look for |
-|---|---|
-| *We're having a team party for 23 people. How much beer?* | approval request, then 4 crates + 12 bottles |
-| *Firemní večírek pro 10 lidí, kolik piva?* | Czech answer, 2 crates |
-| *Three teams of 8 people. How much beer?* | who does the multiplication: the model or the tool? |
-| a question about your document | an answer with the source |
-| *Party for 0 people?* | the tool returns an error: how does the agent explain it? |
+The beer tool is `calculate_beer(number_of_people)`: 4 bottles per person, returned as crates of 20 and single bottles.
 
-Open the **trace** for one answer: which tool, which arguments, what came back, what File Search retrieved, how many
-tokens.
+**Can't create the MCP connection?** Use the URL `<server URL>?api_key=<key>` and no authentication. Fine for this
+dummy server today, never for a real one.
 
-## 5. Play (10 min, pick any)
+## 3. Test it in the playground (10 min)
 
-- **Deny** a tool call once, then approve it.
-- Switch the **model** and compare answers and tokens.
-- **Voice mode** in the playground: ask in Czech.
-- Add **Code Interpreter** and ask for a calculation.
-- Change the instructions and save a **new version**; compare v1 and v2.
-- Try a **prompt injection** ("ignore your instructions and…"): what happens? (We'll come back to it in the guardrails part.)
+Use the test prompts from [`agent-instructions.md`](agent-instructions.md). **Before each one, guess** what the agent
+will do. Look at:
+
+- **Which tool ran:** File Search, the MCP call (with its arguments and result) or Web search, and when.
+- **Sources:** does the answer cite the document or the web page it came from?
+- **Unknown answers:** does the agent say "I don't know", or does it make something up?
+- **Approval:** the MCP call waits for you. What exactly are you approving?
+
+## 4. Explore (15 min, as many as you can)
+
+- **Deny** an MCP call once, then approve it. What does the agent say?
+- Add the **other agent's** knowledge or tools: File Search to B, the beer calculator to A.
+- Add **Code Interpreter** and ask for a calculation (a monthly advance, the price per person).
+- **Voice mode:** talk to your agent in Czech (Voice Live → Open in playground → your agent → Voice mode → Start session).
+- Change the instructions and save a **new version**. Compare v1 and v2 with the same prompt.
+- Switch **Web search** off and ask about prices again.
+- Try a **prompt injection** ("ignore your instructions and…") or ask something off-topic. We'll come back to it in
+  the guardrails part.
+- Click around: Tools catalog, Knowledge, Evaluations, the agent's code view. What would you use in your team?
+
+**Not possible in this workshop environment** (your role is Foundry User + Foundry Project Manager on your project):
+deploying models, changing content filters, publishing the agent to Teams / Microsoft 365, and traces (no Application
+Insights is connected). The trainer shows these in the demos.
 
 ## Debrief
 
 - When is a prompt agent enough, and when would you need a hosted agent or your own code?
-- What did the trace show you that the chat didn't?
-- Where does the key for the MCP server live, and who can read it?
+- Which feature surprised you, and which one would you use first?
+- Where does the key for the MCP server live, and who can read it? Where did the web search query go?
+
+## If something goes wrong
+
+| You see | Fix |
+|---|---|
+| You don't see your project | Check the **New Foundry** toggle and that you're signed in with your E.ON account; ask the trainer |
+| Error when saving the MCP tool / connection | Use the `?api_key=` URL fallback above |
+| MCP call fails or times out | Check the URL (it ends with `/mcp`) and the key; tell the trainer |
+| Web search isn't offered or is refused | Skip it; the beer calculator still works |
+| Voice mode doesn't start | Allow the microphone in the browser; if it still fails, skip it |
