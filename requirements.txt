@@ -1,0 +1,4 @@
+openai>=2.0
+python-dotenv>=1.0
+# Only for Entra ID sign-in (empty AZURE_OPENAI_API_KEY); not needed with an API key
+azure-identity>=1.19
