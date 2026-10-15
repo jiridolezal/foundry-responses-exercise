@@ -5,6 +5,8 @@ what you pay for, and what the service can do for you.
 
 **Time:** 30 minutes + 5 minutes debrief. **You need:** the endpoint, deployment name and API key from the lecturer.
 
+> **Exercise 2** (afternoon, browser only) is in [`exercise-2/`](exercise-2/README.md).
+
 ## 1. Setup (5 min)
 
 **A) On your laptop** (Python 3.10 or newer):
